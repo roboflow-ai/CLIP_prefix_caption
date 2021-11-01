@@ -27,6 +27,8 @@ def main():
         image = preprocess(Image.fromarray(image)).unsqueeze(0).to(device)
         with torch.no_grad():
             prefix = clip_model.encode_image(image).cpu()
+
+        print(prefix.size())
         d["clip_embedding"] = i
         all_embeddings.append(prefix)
         all_captions.append(d)

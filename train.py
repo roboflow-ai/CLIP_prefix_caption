@@ -41,11 +41,10 @@ class ClipCocoDataset(Dataset):
         self.prefix_length = prefix_length
         with open(data_path, 'rb') as f:
             all_data = pickle.load(f)
-        print("Data size is %0d" % len(all_data["clip_embedding"]))
+        print("Data size is %0d" % len(all_data["neuralhash_embedding"]))
         sys.stdout.flush()
-        self.prefixes = all_data["clip_embedding"]
+        self.prefixes = all_data["neuralhash_embedding"]
         captions_raw = all_data["captions"]
-        self.image_ids = [caption["image_id"] for caption in captions_raw]
         self.captions = [caption['caption'] for caption in captions_raw]
         if os.path.isfile(f"{data_path[:-4]}_tokens.pkl"):
             with open(f"{data_path[:-4]}_tokens.pkl", 'rb') as f:
@@ -56,7 +55,7 @@ class ClipCocoDataset(Dataset):
             max_seq_len = 0
             for caption in captions_raw:
                 self.captions_tokens.append(torch.tensor(self.tokenizer.encode(caption['caption']), dtype=torch.int64))
-                self.caption2embedding.append(caption["clip_embedding"])
+                self.caption2embedding.append(caption["neuralhash_embedding"])
                 max_seq_len = max(max_seq_len, self.captions_tokens[-1].shape[0])
             # self.max_seq_len = max_seq_len
             with open(f"{data_path[:-4]}_tokens.pkl", 'wb') as f:
@@ -96,7 +95,7 @@ class ClipCaptionModel(nn.Module):
         out = self.gpt(inputs_embeds=embedding_cat, labels=labels, attention_mask=mask)
         return out
 
-    def __init__(self, prefix_length: int, prefix_size: int = 512):
+    def __init__(self, prefix_length: int, prefix_size: int = 96):
         super(ClipCaptionModel, self).__init__()
         self.prefix_length = prefix_length
         self.gpt = GPT2LMHeadModel.from_pretrained('gpt2')
