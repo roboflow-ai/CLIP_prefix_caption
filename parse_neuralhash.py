@@ -27,13 +27,17 @@ def main():
         binary = bin(int(hash, 16))[2:].zfill(96)
         # print(len(binary), binary)
 
-        embedding = torch.zeros(1, 96, dtype=torch.bool)
+        embedding = torch.zeros(1, 96, dtype=torch.float32)
         for i,b in enumerate(binary):
             if b == "1":
-                embedding[0][i] = True
+                embedding[0][i] = 2
+        embedding = torch.sub(embedding, 1).half()
         # print(binary, embedding.size(), embedding)
+        # print(embedding.type(), embedding.shape, embedding)
+        # exit(0)
 
-        d["caption"] = d.get("completion").replace("\n", "")
+        d["caption"] = " xx " + d.get("completion")#.replace("\n", "")
+        # d["caption"] = " xx blood\n"
         del d["completion"]
         d["neuralhash_embedding"] = i
 
@@ -41,10 +45,14 @@ def main():
         all_captions.append(d)
 
     with open(out_path, 'wb') as f:
+        # print(all_embeddings)
         pickle.dump({"neuralhash_embedding": torch.cat(all_embeddings, dim=0), "captions": all_captions}, f)
 
     print('Done')
     print("%0d embeddings saved " % len(all_embeddings))
+
+    os.system("rm ./data/neuralhash/oscar_split_train_tokens.pkl")
+
     return 0
 
 if __name__ == '__main__':

@@ -34,7 +34,7 @@ class ClipCocoDataset(Dataset):
 
     def __getitem__(self, item: int) -> Tuple[torch.Tensor, ...]:
         tokens, mask = self.pad_tokens(item)
-        return tokens, mask, self.prefixes[self.caption2embedding[item]], self.captions[item]
+        return tokens, mask, self.prefixes[item], self.captions[item]
 
     def __init__(self, data_path: str,  prefix_length: int, gpt2_type: str = "gpt2"):
         self.tokenizer = GPT2Tokenizer.from_pretrained(gpt2_type)
@@ -168,6 +168,9 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
         for idx, (tokens, mask, prefix, _) in enumerate(train_dataloader):
             model.zero_grad()
             tokens, mask, prefix = tokens.to(device), mask.to(device), prefix.to(device, dtype=torch.float32)
+            # print("tokens", tokens.size(), tokens)
+            # print("prefix", torch.eq(prefix[0], prefix[1]), prefix.size(), prefix.type(), prefix)
+            # print("mask", mask.size(), mask)
             outputs = model(tokens, prefix, mask)
             logits = outputs.logits[:, dataset.prefix_length - 1: -1]
             loss = nnf.cross_entropy(logits.reshape(-1, logits.shape[-1]), tokens.flatten(), ignore_index=0)

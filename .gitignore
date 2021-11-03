@@ -2,3 +2,7 @@ neuralhash_train
 data
 coco_train
 .DS_STORE
+*.pt
+__pycache__
+cache/*
+lions.jpg
